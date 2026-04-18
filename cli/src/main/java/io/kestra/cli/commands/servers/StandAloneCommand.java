@@ -16,13 +16,14 @@ import io.kestra.core.models.ServerType;
 import io.kestra.core.repositories.LocalFlowRepositoryLoader;
 import io.kestra.core.runners.Worker;
 import io.kestra.core.services.IgnoreExecutionService;
-import io.kestra.core.utils.Await;
+import org.awaitility.Awaitility;
 
 import io.micronaut.context.ApplicationContext;
 import jakarta.annotation.Nullable;
 import jakarta.inject.Inject;
 import picocli.CommandLine;
 import picocli.CommandLine.Option;
+import io.kestra.core.utils.Await;
 
 @CommandLine.Command(
     name = "standalone",
@@ -139,7 +140,7 @@ public class StandAloneCommand extends AbstractServerCommand {
                 fileWatcher.startListeningFromConfig();
             }
 
-            Await.until(() -> !this.applicationContext.isRunning());
+            Await.await().forever().until(() -> !this.applicationContext.isRunning());
         }
 
         return 0;

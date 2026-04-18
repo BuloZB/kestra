@@ -1409,7 +1409,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
+                  type: string
   /api/v1/{tenant}/executions/flows/{namespace}/{flowId}:
     get:
       tags:
@@ -4181,6 +4181,7 @@ paths:
         explode: false
         schema:
           type: boolean
+          nullable: true
           default: false
       - name: tenant
         in: path
@@ -4768,6 +4769,33 @@ paths:
             application/json:
               schema:
                 type: boolean
+  /api/v1/{tenant}/outputs/{executionId}:
+    get:
+      tags:
+      - Outputs
+      summary: Get task run outputs
+      operationId: getTaskOutputsInformation
+      parameters:
+      - name: executionId
+        in: path
+        description: The execution id
+        required: true
+        schema:
+          type: string
+      - name: tenant
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: getTaskOutputsInformation 200 response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OutputController.TaskOutputInformation"
   /api/v1/{tenant}/outputs/{executionId}/{taskRunId}:
     get:
       tags:
@@ -4798,7 +4826,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TaskOutput"
+                type: object
+                additionalProperties:
+                  type: object
   /api/v1/{tenant}/secrets:
     get:
       tags:
@@ -5193,7 +5223,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
+                  type: string
   /api/v1/{tenant}/triggers/search:
     get:
       tags:
@@ -6994,8 +7024,8 @@ components:
     LoopRun:
       type: object
       properties:
-        executionId:
-          type: string
+        parent:
+          $ref: "#/components/schemas/Execution"
         taskId:
           type: string
         taskRunId:
@@ -7222,6 +7252,20 @@ components:
         displayName:
           type: string
         required:
+          type: boolean
+    OutputController.TaskOutputInformation:
+      type: object
+      properties:
+        taskId:
+          type: string
+        taskRunId:
+          type: string
+        value:
+          type: string
+        iteration:
+          type: integer
+          format: int32
+        inline:
           type: boolean
     PagedResults_ApiTriggerAndState_:
       required:
@@ -7651,6 +7695,7 @@ components:
       - STATUS
       - EMAIL
       - TIME_RANGE
+      - PARENT_ID
       - TRIGGER_EXECUTION_ID
       - TRIGGER_ID
       - TRIGGER_STATE
@@ -7981,20 +8026,6 @@ components:
             $ref: "#/components/schemas/Input_Object_"
         subflowId:
           $ref: "#/components/schemas/ExecutableTask.SubflowId"
-    TaskOutput:
-      type: object
-      properties:
-        taskRunId:
-          type: string
-        tenantId:
-          type: string
-        executionId:
-          type: string
-        value:
-          type: string
-          format: byte
-        uri:
-          type: string
     TaskRun:
       required:
       - executionId

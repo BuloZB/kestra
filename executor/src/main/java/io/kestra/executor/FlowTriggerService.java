@@ -19,6 +19,8 @@ import io.kestra.core.runners.RunContextFactory;
 import io.kestra.core.services.ConditionService;
 import io.kestra.core.services.FlowService;
 
+import io.kestra.core.utils.ListUtils;
+import io.kestra.core.utils.MapUtils;
 import jakarta.inject.Singleton;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -57,14 +59,14 @@ public class FlowTriggerService {
 
     /**
      * This method computes executions to trigger from flow triggers from a given execution.
-     * It only computes those depending on standard (non-multiple / non-preconditions) conditions, so it must be used
-     * in conjunction with {@link #computeExecutionsFromFlowTriggerPreconditions(Execution, Flow, MultipleConditionStateStore)}.
+     * It only computes those depending on standard (non-preconditions / non-dependsOn) conditions, so it must be used
+     * in conjunction with {@link #computeExecutionsFromFlowTriggerPreconditionsAndDependsOn(Execution, Flow, MultipleConditionStateStore)}.
      */
     public List<Execution> computeExecutionsFromFlowTriggerConditions(Execution execution, Flow flow) {
         List<FlowWithFlowTrigger> flowWithFlowTriggers = computeFlowTriggers(execution, flow)
             .stream()
-            // we must filter on no preconditions to avoid evaluating two times triggers that have standard conditions and multiple conditions
-            .filter(it -> it.getTrigger().getPreconditions() == null)
+            // we must filter on no preconditions and no dependsOn to avoid evaluating two times triggers that have standard conditions and multiple conditions
+            .filter(it -> it.getTrigger().getPreconditions() == null && ListUtils.isEmpty(it.getTrigger().getDependsOn()))
             .toList();
 
         // short-circuit empty triggers to evaluate
@@ -89,14 +91,14 @@ public class FlowTriggerService {
 
     /**
      * This method computes executions to trigger from flow triggers from a given execution.
-     * It only computes those depending on multiple conditions and preconditions, so it must be used
+     * It only computes those depending on preconditions or dependsOn, so it must be used
      * in conjunction with {@link #computeExecutionsFromFlowTriggerConditions(Execution, Flow)}.
      */
-    public List<Execution> computeExecutionsFromFlowTriggerPreconditions(Execution execution, Flow flow, MultipleConditionStateStore multipleConditionStorage) {
+    public List<Execution> computeExecutionsFromFlowTriggerPreconditionsAndDependsOn(Execution execution, Flow flow, MultipleConditionStateStore multipleConditionStorage) {
         List<FlowWithFlowTrigger> flowWithFlowTriggers = computeFlowTriggers(execution, flow)
             .stream()
-            // we must filter on multiple conditions or preconditions to avoid evaluating two times triggers that only have standard conditions
-            .filter(flowWithFlowTrigger -> flowWithFlowTrigger.getTrigger().getPreconditions() != null)
+            // we must filter on preconditions or dependsOn to avoid evaluating two times triggers that only have standard conditions
+            .filter(flowWithFlowTrigger -> flowWithFlowTrigger.getTrigger().getPreconditions() != null || !ListUtils.isEmpty(flowWithFlowTrigger.getTrigger().getDependsOn()))
             .toList();
 
         // short-circuit empty triggers to evaluate
@@ -110,7 +112,7 @@ public class FlowTriggerService {
                     .map(
                         multipleCondition -> new FlowWithFlowTriggerAndMultipleCondition(
                             flowWithFlowTrigger.getFlow(),
-                            multipleConditionStorage.getOrCreate(flowWithFlowTrigger.getFlow(), multipleCondition, execution.getOutputs()),
+                            multipleConditionStorage.getOrCreate(flowWithFlowTrigger.getFlow(), multipleCondition, buildOutputs(execution)),
                             flowWithFlowTrigger.getTrigger(),
                             multipleCondition
                         )
@@ -154,14 +156,19 @@ public class FlowTriggerService {
                     multipleConditionStorage
                 ))
             )
-            // will evaluate preconditions
+            // will evaluate preconditions and dependsOn
             .filter(
                 flowWithFlowTrigger -> conditionService.isValid(
                     flowWithFlowTrigger.getTrigger().getPreconditions(),
                     flowWithFlowTrigger.getFlow(),
                     execution,
                     multipleConditionStorage
-                )
+                ) && conditionService.isValid(
+                        flowWithFlowTrigger.getTrigger().dependsOnAsMultipleCondition(),
+                        flowWithFlowTrigger.getFlow(),
+                        execution,
+                        multipleConditionStorage
+                    )
             )
             .map(
                 f -> f.getTrigger().evaluate(
@@ -185,14 +192,24 @@ public class FlowTriggerService {
                     )
                 )
                 .filter(
-                    e -> !Boolean.FALSE.equals(e.getKey().getResetOnSuccess()) &&
-                        e.getKey().getConditions().size() == Optional.ofNullable(e.getValue().getResults()).map(Map::size).orElse(0)
+                    e -> !Boolean.FALSE.equals(e.getKey().getResetOnSuccess()) && isConditionSatisfied(e.getKey(), e.getValue())
                 )
                 .map(Map.Entry::getValue),
             multipleConditionStorage.expired(execution.getTenantId()).stream()
         ).forEach(multipleConditionStorage::delete);
 
         return executions;
+    }
+
+    private Map<String, Object> buildOutputs(Execution execution) {
+        if (execution.getOutputs() == null) {
+            return null;
+        }
+
+        return Map.of(
+            execution.getNamespace(), Map.of(
+                execution.getFlowId(), execution.getOutputs()
+        ));
     }
 
     private List<FlowWithFlowTrigger> computeFlowTriggers(Execution execution, Flow flow) {
@@ -225,7 +242,24 @@ public class FlowTriggerService {
     }
 
     private Stream<MultipleCondition> flowTriggerMultipleConditions(FlowWithFlowTrigger flowWithFlowTrigger) {
-        return Optional.<MultipleCondition>ofNullable(flowWithFlowTrigger.getTrigger().getPreconditions()).stream();
+        return Stream.concat(
+            Optional.ofNullable(flowWithFlowTrigger.getTrigger().getPreconditions()).stream(),
+            Optional.ofNullable(flowWithFlowTrigger.getTrigger().dependsOnAsMultipleCondition()).stream()
+        );
+
+    }
+
+    /**
+     * Determines whether a multiple condition is satisfied based on its mode and the current results.
+     * Used to decide whether to purge the condition window after a successful evaluation.
+     */
+    private boolean isConditionSatisfied(MultipleCondition condition, MultipleConditionWindow window) {
+        int satisfiedCount = Optional.ofNullable(window.getResults()).map(Map::size).orElse(0);
+        return switch (condition.getMode()) {
+            case ALL -> condition.getConditions().size() == satisfiedCount;
+            case ANY -> satisfiedCount > 0;
+            case AT_LEAST -> satisfiedCount >= condition.getMinSatisfied();
+        };
     }
 
     @AllArgsConstructor
