@@ -9,7 +9,7 @@
     import {computed, onBeforeUnmount} from "vue";
     import {useRoute} from "vue-router";
     import {useI18n} from "vue-i18n";
-    import * as YAML_UTILS from "@kestra-io/ui-libs/flow-yaml-utils";
+    import {flowYamlUtils as YAML_UTILS} from "@kestra-io/design-system";
     import TopNavBar from "../../components/layout/TopNavBar.vue";
     import MultiPanelFlowEditorView from "./MultiPanelFlowEditorView.vue";
     import {useBlueprintsStore} from "../../stores/blueprints";
@@ -20,7 +20,7 @@
 
     import type {BlueprintType} from "../../stores/blueprints"
     import {useAuthStore} from "override/stores/auth";
-    import permission from "../../models/permission";
+    import resource from "../../models/resource";
     import action from "../../models/action";
     import {useOnboardingV2Store} from "../../stores/onboardingV2";
 
@@ -42,7 +42,7 @@
             ? sessionStorage.getItem(ONBOARDING_FLOW_PRESET_KEY) ?? ""
             : "";
         const implicitDefaultNamespace = authStore.user?.getNamespacesForAction(
-            permission.FLOW,
+            resource.FLOW,
             action.CREATE,
         )[0];
         let flowYaml = "";

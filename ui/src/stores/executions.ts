@@ -5,7 +5,7 @@ import Utils from "../utils/utils";
 import {useCoreStore} from "./core";
 import throttle from "lodash/throttle";
 import {useRoute} from "vue-router";
-import {CLUSTER_PREFIX} from "@kestra-io/ui-libs/src/utils/constants.ts";
+import {CLUSTER_PREFIX} from "@kestra-io/design-system";
 import {useAxios} from "../utils/axios";
 import * as ExecutionUtils from "../utils/executionUtils";
 
@@ -450,9 +450,10 @@ export const useExecutionsStore = defineStore("executions", () => {
         return Promise.resolve(new EventSource(`${apiUrl()}/logs/${options.id}/follow`, {withCredentials: true}));
     }
 
-    const loadLogs = (options: { executionId: string; params?: Record<string, any>; store?: boolean }) => {
+    const loadLogs = (options: { executionId: string; params?: Record<string, any>; store?: boolean; showMessageOnError?: boolean }) => {
         return axios.get(`${apiUrl()}/logs/${options.executionId}`, {
-            params: options.params
+            params: options.params,
+            ...(options.showMessageOnError === false ? {showMessageOnError: false} : {}),
         }).then(response => {
             if (options.store === false) {
                 return response.data;

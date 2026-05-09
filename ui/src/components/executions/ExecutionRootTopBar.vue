@@ -4,36 +4,36 @@
             {{ routeInfo?.title }}
             <Badge v-if="isATestExecution" :label="$t('test-badge-text')" :tooltip="$t('test-badge-tooltip')" />
         </template>
-        <template #additional-right>
-            <slot name="additional-right" />
+        <template #actions>
+            <slot name="actions" />
             <div class="d-flex align-items-center gap-2" v-if="hasVisibleActions && $route.params.tab !== 'audit-logs'">
                 <ul class="d-none d-xl-flex align-items-center">
                     <li v-if="isAllowedEdit" data-onboarding-target="execution-edit-flow-button">
-                        <el-button
+                        <KsButton
                             class="execution-edit-flow-button"
                             :icon="Pencil"
                             @click="editFlow"
                         >
                             {{ $t("edit flow") }}
-                        </el-button>
+                        </KsButton>
                     </li>
                 </ul>
-    
-                <el-dropdown class="d-flex d-xl-none align-items-center">
-                    <el-button>
-                        <el-icon><DotsVerticalIcon /></el-icon>
+
+                <KsDropdown class="d-flex d-xl-none align-items-center">
+                    <KsButton>
+                        <KsIcon><DotsVerticalIcon /></KsIcon>
                         <span class="d-none d-lg-inline-block">{{ $t("more_actions") }}</span>
-                    </el-button>
+                    </KsButton>
                     <template #dropdown>
-                        <el-dropdown-menu>
-                            <el-dropdown-item v-if="isAllowedEdit" @click="editFlow">
-                                <el-icon><Pencil /></el-icon>
+                        <KsDropdownMenu>
+                            <KsDropdownItem v-if="isAllowedEdit" @click="editFlow">
+                                <KsIcon><Pencil /></KsIcon>
                                 {{ $t("edit flow") }}
-                            </el-dropdown-item>
-                        </el-dropdown-menu>
+                            </KsDropdownItem>
+                        </KsDropdownMenu>
                     </template>
-                </el-dropdown>
-    
+                </KsDropdown>
+
                 <div v-if="primaryAction || fallbackToExecute">
                     <div class="d-flex align-items-center gap-2">
                         <component
@@ -65,14 +65,14 @@
 
 <script>
     import {mapStores} from "pinia";
-    import {State} from "@kestra-io/ui-libs";
+    import {State} from "@kestra-io/design-system";
 
     import TriggerFlow from "../flows/TriggerFlow.vue";
     import Pause from "./overview/components/actions/Pause.vue";
     import Resume from "./overview/components/actions/Resume.vue";
     import Restart from "./overview/components/actions/Restart.vue";
     import TopNavBar from "../layout/TopNavBar.vue";
-    import permission from "../../models/permission";
+    import resource from "../../models/resource";
     import action from "../../models/action";
     import {useExecutionsStore} from "../../stores/executions";
     import {useAuthStore} from "override/stores/auth"
@@ -97,10 +97,10 @@
                 return this.executionsStore.execution;
             },
             isAllowedEdit() {
-                return this.execution && this.authStore.user?.isAllowed(permission.FLOW, action.UPDATE, this.execution.namespace);
+                return this.execution && this.authStore.user?.isAllowed(resource.FLOW, action.UPDATE, this.execution.namespace);
             },
             isAllowedTrigger() {
-                return this.execution && this.authStore.user?.isAllowed(permission.EXECUTION, action.CREATE, this.execution.namespace);
+                return this.execution && this.authStore.user?.isAllowed(resource.EXECUTION, action.CREATE, this.execution.namespace);
             },
             hasVisibleActions() {
                 return this.isAllowedEdit || this.primaryAction || this.fallbackToExecute;

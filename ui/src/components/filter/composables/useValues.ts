@@ -1,11 +1,11 @@
 import {useI18n} from "vue-i18n";
 import {computed} from "vue";
 import {useMiscStore} from "override/stores/misc";
-import {FilterValue} from "../utils/filterTypes";
+import {FilterValue} from "@kestra-io/design-system";
 
-import {State} from "@kestra-io/ui-libs";
+import {State} from "@kestra-io/design-system";
 import {auditLogTypes} from "../../../models/auditLogTypes";
-import permission from "../../../models/permission";
+import resource from "../../../models/resource";
 import action from "../../../models/action";
 
 const capitalize = (str: string): string => {
@@ -98,7 +98,7 @@ export function useValues(label: string | undefined, t?: ReturnType<typeof useI1
             color: `var(--ks-log-border-${level.toLowerCase()})`,
         })),
         TYPES: auditLogTypes,
-        PERMISSIONS: buildFromObject(permission),
+        PERMISSIONS: buildFromObject(resource),
         ACTIONS: buildFromObject({
             ...action,
             LOGIN: "LOGIN",

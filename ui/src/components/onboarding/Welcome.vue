@@ -9,9 +9,9 @@
     >
         <template v-if="canCreateFlow" #cta>
             <router-link :to="{name: 'flows/create'}">
-                <el-button type="primary">
+                <KsButton type="primary">
                     {{ $t("welcome_copilot.button_cta") }}
-                </el-button>
+                </KsButton>
             </router-link>
         </template>
     </WelcomeCopilot>
@@ -26,15 +26,18 @@
     import {flowExamples, labels} from "./flows/index";
     import {aiGenerationTypes} from "../../utils/constants";
 
-    import permission from "../../models/permission";
+    import resource from "../../models/resource";
     import action from "../../models/action";
 
     import {useAuthStore} from "override/stores/auth";
     const authStore = useAuthStore();
 
-    const canCreateFlow = computed(() =>
-        authStore.user?.hasAnyActionOnAnyNamespace(permission.FLOW, action.CREATE),
-    );
+    const canCreateFlow = computed(() => {
+        return authStore.user?.hasAnyActionOnAnyNamespace(
+            resource.FLOW,
+            action.CREATE,
+        );
+    });
 
     import useRestoreUrl from "../../composables/useRestoreUrl";
     import useRouteContext from "../../composables/useRouteContext";
