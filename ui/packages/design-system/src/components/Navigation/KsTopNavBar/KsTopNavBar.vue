@@ -26,6 +26,7 @@
                 </KsTooltip>
                 <KsTag v-if="beta" type="primary" size="small" class="beta-tag">Beta</KsTag>
                 <KsIconButton
+                    v-if="!hideBookmark"
                     class="icon-btn star"
                     :class="{active: isBookmarked}"
                     :ariaLabel="t('topnav_bookmark')"
@@ -56,6 +57,7 @@
         <div class="side d-flex gap-2 flex-shrink-0 align-items-center">
             <slot name="search" />
             <slot name="actions" />
+            <slot name="panel-toggle" />
             <KsIconButton
                 v-if="showDockToggle"
                 class="icon-btn dock-toggle"
@@ -98,6 +100,7 @@
         mainIcon?: Component
         beta?: boolean
         isBookmarked?: boolean
+        hideBookmark?: boolean
         sidebarCollapsed?: boolean
         tabs?: KsTopNavBarTab[]
         activeTab?: string
@@ -118,6 +121,7 @@
         description?(): unknown
         search?(): unknown
         actions?(): unknown
+        "panel-toggle"?(): unknown
     }>()
 
     const {t} = useI18n({useScope: "global"})
@@ -127,7 +131,7 @@
     .ks-topnavbar {
         height: 60px;
         flex-shrink: 0;
-        padding: 0 var(--ks-spacing-6);
+        padding: 0 var(--ks-spacing-4);
         gap: var(--ks-spacing-4);
         border-bottom: var(--ks-border-block-primary);
         background: var(--ks-bg-surface);
@@ -174,7 +178,7 @@
 
     .icon-btn {
         border: none;
-        color: var(--ks-text-dim);
+        color: var(--ks-icon-muted);
 
         &:deep(svg) {
             fill: currentColor;
@@ -187,10 +191,10 @@
     }
 
     .dock-toggle {
-        &.is-open {
+         &.is-open {
             color: var(--ks-icon-default);
         }
-
+        
         @media (max-width: 767px) {
             display: none;
         }

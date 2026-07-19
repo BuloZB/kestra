@@ -2,11 +2,11 @@
     <div class="plugin-doc">
         <template v-if="fetchPluginDocumentation && currentPlugin">
             <div class="d-flex gap-3 mb-3 align-items-center">
-                <KsTaskIcon
+                <TaskIcon
                     class="plugin-icon"
                     :cls="currentPlugin.cls"
                     onlyIcon
-                    :icons="pluginsStore.icons"
+                    :loadIcon="pluginsStore.loadIcon"
                 />
                 <h4 class="mb-0 plugin-title text-truncate">
                     {{ pluginName }}
@@ -24,7 +24,7 @@
             <Suspense>
                 <SchemaToHtml
                     class="plugin-schema"
-                    :darkMode="miscStore.theme === 'dark'"
+                    :darkMode="isDarkTheme"
                     :schema="currentPlugin?.schema"
                     :pluginType="currentPlugin?.cls"
                     :forceIncludeProperties="pluginsStore.forceIncludeProperties"
@@ -52,8 +52,10 @@
 
     import {computed} from "vue"
     import SchemaToHtml from "./schema/SchemaToHtml.vue"
-    import {KsTaskIcon, KsMarkdown} from "@kestra-io/design-system"
+    import {KsMarkdown} from "@kestra-io/design-system"
+    import TaskIcon from "./TaskIcon.vue"
     import {getPluginReleaseUrl} from "../../utils/pluginUtils"
+    import {getTheme} from "../../utils/utils"
     import {useMiscStore} from "override/stores/misc"
     import {usePluginsStore} from "../../stores/plugins"
     import GitHub from "vue-material-design-icons/Github.vue"
@@ -73,6 +75,11 @@
 
     const miscStore = useMiscStore()
     const pluginsStore = usePluginsStore()
+
+    const isDarkTheme = computed(() => {
+        void miscStore.theme
+        return getTheme() === "dark"
+    })
 
     const currentPlugin = computed(() => {
         return props.plugin ?? pluginsStore.editorPlugin
@@ -116,11 +123,6 @@
         color: var(--ks-status-info);
         border: 1px solid var(--ks-border-info);
         white-space: nowrap;
-
-        :deep(.material-design-icon) {
-            position: absolute;
-            bottom: 0;
-        }
 
         @media (max-width: 576px) {
             padding: 6px 12px;

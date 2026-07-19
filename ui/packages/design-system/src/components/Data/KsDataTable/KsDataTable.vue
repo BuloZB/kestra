@@ -3,12 +3,12 @@
         <slot name="empty" />
     </template>
 
-    <div class="ks-data-table-wrapper" :class="{'no-pagination-gutter': noPaginationGutter}" v-else>
-        <nav v-if="hasNavBar" class="ks-data-table-navbar mb-3">
+    <div class="ks-data-table-wrapper" :class="{'no-pagination-gutter': noPaginationGutter, 'no-gutter': noGutter}" v-else>
+        <nav v-if="hasNavBar" class="ks-data-table-navbar">
             <slot name="navbar" />
         </nav>
 
-        <div v-ks-loading="isLoading">
+        <div class="ks-data-table-body" :class="{'ks-data-table-body--fit': fitHeight}" v-ks-loading="isLoading">
             <div v-if="$slots.top" class="ks-data-table-top">
                 <slot name="top" />
             </div>
@@ -18,12 +18,12 @@
             </template>
 
             <template v-else>
-                <div ref="container" class="ks-data-table-content" @click.capture="(e: MouseEvent) => isShiftPressed = e.shiftKey">
+                <div ref="container" class="ks-data-table-content" :class="{'no-selection-gutter': !hasSelectionColumn && !noFirstColumnGutter}" @click.capture="(e: MouseEvent) => isShiftPressed = e.shiftKey">
                     <div v-if="hasSelection && data && data.length && hasBulkActions" class="bulk-select-header">
                         <KsBulkSelect
                             :selectAll="queryBulkAction"
                             :selectionCount="mappedSelection.length"
-                            :total
+                            :total="selectableTotal"
                             @toggle-all="toggleAllSelection"
                             @unselect="toggleAllUnselected"
                         >
@@ -37,20 +37,23 @@
                     <KsTable
                         ref="tableRef"
                         v-bind="$attrs"
-                        tableLayout="auto"
+                        :tableLayout="tableLayout"
                         fixed
                         :data
                         :rowKey
                         :expandRowKeys="composedExpandRowKeys"
                         :rowClassName="composedRowClassName"
-                        :emptyText="data && data.length === 0 ? noDataText : ''"
+                        :emptyText="noDataText"
                         @selection-change="selectionChanged"
                         @select="onSelect"
                         @sort-change="onSortChange"
                         @row-dblclick="(row, column, event) => emit('row-dblclick', row, column, event)"
                     >
-                        <KsTableColumn v-if="selectable && showSelection" type="selection" reserveSelection />
+                        <KsTableColumn v-if="selectable && showSelection" type="selection" reserveSelection :selectable="rowSelectable" />
                         <slot />
+                        <template #empty>
+                            <KsNoData :title="noDataText" />
+                        </template>
                     </KsTable>
                 </div>
             </template>
@@ -79,6 +82,7 @@
     import KsTableColumn from "../KsTable/KsTableColumn.vue"
     import KsPagination from "../KsPagination.vue"
     import KsBulkSelect from "./KsBulkSelect.vue"
+    import KsNoData from "../KsNoData.vue"
 
     defineOptions({inheritAttrs: false})
 
@@ -93,6 +97,7 @@
         pageSize?: number
         loading?: boolean
         selectable?: boolean
+        rowSelectable?: (row: any, index: number) => boolean
         showSelection?: boolean
         rowKey?: string | ((row: any) => string)
         noDataText?: string
@@ -101,6 +106,10 @@
         selectionMapper?: (element: any) => any
         forceExpandedRowKeys?: string[]
         noPaginationGutter?: boolean
+        noGutter?: boolean
+        noFirstColumnGutter?: boolean
+        tableLayout?: "fixed" | "auto"
+        fitHeight?: boolean
     }>(), {
         data: () => [],
         total: 0,
@@ -108,6 +117,7 @@
         pageSize: 25,
         loading: false,
         selectable: false,
+        rowSelectable: undefined,
         showSelection: true,
         rowKey: "id",
         noDataText: undefined,
@@ -116,16 +126,28 @@
         selectionMapper: undefined,
         forceExpandedRowKeys: () => [],
         noPaginationGutter: false,
+        noGutter: false,
+        noFirstColumnGutter: false,
+        tableLayout: "auto",
+        fitHeight: false,
     })
+
+    export interface SortItem {
+        column: any; 
+        prop: string | null; 
+        order: string | null
+    }
+    
 
     const emit = defineEmits<{
         "page-changed": [payload: {page: number; size: number}]
         "update:currentPage": [page: number]
         "update:pageSize": [size: number]
-        "sort-change": [sort: {column: any; prop: string; order: string | null}]
+        "sort-change": [sort: SortItem]
         "selection-change": [selection: any[]]
         "row-dblclick": [row: any, column: any, event: Event]
         "ready": []
+        "loaded": []
     }>()
 
     defineSlots<{
@@ -141,6 +163,7 @@
     const slots = useSlots()
     const attrs = useAttrs()
     const hasNavBar = computed(() => !!slots["navbar"])
+    const hasSelectionColumn = computed(() => props.selectable && props.showSelection)
     const hasTableSlot = computed(() => !!slots["table"])
     const hasBulkActions = computed(() => !!slots["bulk-actions"])
     const hasEmpty = computed(() => !!slots["empty"])
@@ -193,13 +216,27 @@
     const queryBulkAction = ref(false)
     const mappedSelection = ref<any[]>([])
 
+    const pageSelectableCount = computed(() => {
+        if (!props.rowSelectable) {
+            return props.data?.length ?? 0
+        }
+        return (props.data ?? []).filter((row, index) => props.rowSelectable!(row, index)).length
+    })
+
+    /** With a rowSelectable filter, "select all" only reaches the selectable rows of the current page. */
+    const selectableTotal = computed(
+        () => props.rowSelectable
+            ? pageSelectableCount.value
+            : props.total,
+    )
+
     const selectionChanged = (rawSelection: any[]) => {
         hasSelection.value = rawSelection.length > 0
 
         const mapper = props.selectionMapper ?? ((e: any) => e)
         mappedSelection.value = rawSelection.map(mapper)
 
-        if (queryBulkAction.value && props.data && rawSelection.length < props.data.length) {
+        if (queryBulkAction.value && props.data && rawSelection.length < pageSelectableCount.value) {
             queryBulkAction.value = false
         }
 
@@ -266,7 +303,7 @@
 
     const toggleAllSelection = () => {
         const current = getSelectionRows()
-        if (current.length < props.data.length) {
+        if (current.length < pageSelectableCount.value) {
             tableRef.value?.toggleAllSelection()
         }
         queryBulkAction.value = true
@@ -299,6 +336,8 @@
                 isReady.value = true
                 emit("ready")
             }
+            await nextTick()
+            emit("loaded")
         }
     }
 
@@ -367,7 +406,7 @@
         emit("page-changed", {page: 1, size})
     }
 
-    const onSortChange = (sort: {column: any; prop: string; order: string | null}) => {
+    const onSortChange = (sort: {column: any; prop: string | null; order: string | null}) => {
         if (sort.prop && sort.order) {
             internalSort.value = `${sort.prop}:${sort.order === "descending" ? "desc" : "asc"}`
         } else {
@@ -396,11 +435,18 @@
 
 <style lang="scss">
     .ks-data-table-wrapper {
-        --ks-data-table-gutter: 24px;
+        --ks-data-table-gutter: 2rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
 
         > .ks-data-table-navbar,
         .ks-data-table-top {
             padding-inline: var(--ks-data-table-gutter);
+        }
+
+        > .ks-data-table-navbar {
+            padding-block-start: var(--ks-data-table-navbar-padding-block-start, 0px);
         }
 
         .kel-pagination {
@@ -417,6 +463,14 @@
             padding-inline: 0;
         }
 
+        &.no-gutter {
+            > .ks-data-table-navbar,
+            .ks-data-table-top,
+            .kel-pagination {
+                padding-inline: 0;
+            }
+        }
+
         .kel-checkbox__inner {
             width: 16px;
             height: 16px;
@@ -424,10 +478,33 @@
             background: transparent;
             border: 0.8px solid var(--ks-border-strong);
         }
+
+        .kel-scrollbar__view {
+            height: 100%;
+        }
+    }
+
+    .ks-data-table-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        &--fit {
+            min-height: 0;
+            overflow: hidden;
+        }
     }
 
     .ks-data-table-content {
         position: relative;
+        height:100%;
+
+        &.no-selection-gutter {
+            .kel-table th.kel-table__cell:first-child > .cell,
+            .kel-table td.kel-table__cell:first-child > .cell {
+                padding-left: var(--ks-spacing-5);
+            }
+        }
 
         .bulk-select-header {
             z-index: 1;

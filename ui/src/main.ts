@@ -19,7 +19,8 @@ loadNodeTypes()
 
 import App from "./App.vue"
 import initApp from "./utils/init"
-import {configureAxios} from "@kestra-io/kestra-sdk"
+import {setupKestraHttp} from "./utils/kestraHttp"
+import {useClient} from "@kestra-io/kestra-sdk"
 import routes from "./routes/routes"
 import en from "./translations/en.json"
 import {setupTenantRouter} from "./composables/useTenant"
@@ -28,11 +29,16 @@ import {getCsrfToken} from "./utils/csrf"
 import {useCoreStore} from "./stores/core"
 import {useLayoutStore} from "./stores/layout"
 import {useUnsavedChangesStore} from "./stores/unsavedChanges"
-import {useAuthStore} from "override/stores/auth"
 import {useMiscStore} from "override/stores/misc"
+import {TASK_ICON_INJECTION_KEY} from "@kestra-io/design-system"
+import TaskIcon from "./components/plugins/TaskIcon.vue"
 
 
 const app = createApp(App)
+
+// lets KsEditor and the topology package render real plugin icons without
+// the design system depending on the app's plugin-icon API
+app.provide(TASK_ICON_INJECTION_KEY, TaskIcon)
 
 const handleAuthError = (error: Error, to: {fullPath: string}) => {
     if (error.message?.includes("401")) {
@@ -43,11 +49,10 @@ const handleAuthError = (error: Error, to: {fullPath: string}) => {
     return {name: "setup"}
 }
 
-let axiosInstance: ReturnType<typeof configureAxios> | undefined
+let httpClient: ReturnType<typeof setupKestraHttp> | undefined
 
 function setupAxios(router: Router) {
     const coreStore = useCoreStore()
-    const authStore = useAuthStore()
     const unsavedChangesStore = useUnsavedChangesStore()
     const layoutStore = useLayoutStore()
 
@@ -59,28 +64,24 @@ function setupAxios(router: Router) {
     }
 
 
-    // axios
-    axiosInstance = configureAxios({}, {
-        authStore,
+    httpClient = setupKestraHttp({}, {
         coreStore,
-        oss: true,
         router,
         beforeLogout,
         isLoggedIn: () => !!BasicAuth.isLoggedIn(),
-        onAuthTimeout: beforeLogout,
-        isImpersonating: () => !!window.sessionStorage.getItem("impersonate"),
     })
 
-    axiosInstance.interceptors.request.use((config) => {
+    // Add CSRF token to every request - covers both generated-endpoint calls and
+    // useClient() ad-hoc calls, since they share client.interceptors under the hood.
+    httpClient.interceptors.request.use((request) => {
         const csrfToken = getCsrfToken()
-        if (csrfToken) {
-            config.headers = config.headers || {}
-            config.headers["X-CSRF-TOKEN"] = csrfToken
-        }
-        return config
+        if (!csrfToken) return request
+        const headers = new Headers(request.headers)
+        headers.set("X-CSRF-TOKEN", csrfToken)
+        return new Request(request, {headers})
     })
 
-    return axiosInstance
+    return useClient()
 }
 
 // FIXME: any - guard args are untyped in the GuardFn interface
@@ -91,7 +92,7 @@ async function beforeResolve(router: Router, to: any, from: any): Promise<unknow
 
     try {
         const miscStore = useMiscStore()
-        if(!axiosInstance) {
+        if(!httpClient) {
             setupAxios(router)
         }
         const configs = await miscStore.loadConfigs()

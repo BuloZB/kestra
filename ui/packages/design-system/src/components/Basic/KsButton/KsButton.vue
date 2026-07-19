@@ -53,7 +53,7 @@
         type?: "default" | "primary" | "success" | "warning" | "info" | "danger" | "text" | ""
         size?: "small" | "default" | "large" | ""
         disabled?: boolean
-        icon?: string | Component
+        icon?: string | object
         nativeType?: "button" | "submit" | "reset"
         loading?: boolean
         text?: boolean
@@ -119,6 +119,10 @@
         --kel-button-border-color: var(--ks-btn-secondary-border-default);
         --kel-button-disabled-text-color: var(--ks-text-inactive);
 
+        [class*="kel-icon"] + span {
+            margin-left: var(--ks-spacing-2);
+        }
+
         &.kel-button--small {
             border-radius: var(--kel-border-radius-small);
         }
@@ -167,6 +171,12 @@
                 --kel-button-active-bg-color: var(--ks-btn-primary-bg-active);
                 --kel-button-active-border-color: var(--ks-btn-primary-bg-active);
             }
+        }
+
+        &.is-link {
+            --kel-button-text-color: var(--ks-text-secondary);
+            --kel-button-hover-link-text-color: var(--ks-text-primary);
+            --kel-button-active-color: var(--ks-text-primary);
         }
 
         &.is-text {
