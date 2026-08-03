@@ -11,6 +11,7 @@ import io.kestra.core.models.flows.FlowWithSource;
 import io.kestra.core.repositories.SettingRepositoryInterface;
 import io.kestra.core.runners.pebble.PebbleFunction;
 import io.kestra.core.utils.IdUtils;
+import io.kestra.webserver.filter.TestAuthFilter;
 import io.kestra.webserver.services.BasicAuthCredentials;
 import io.kestra.webserver.services.BasicAuthService;
 import io.kestra.webserver.services.BasicAuthService.BasicAuthConfiguration;
@@ -96,6 +97,22 @@ class MiscControllerTest {
         assertThat(response.getFlowTemplate()).isEqualTo("tasks:\n  - id: configured\n    type: io.kestra.plugin.core.log.Log\n    message: Configured");
         assertThat(response.getIsConcurrencyViewEnabled()).isTrue();
         assertThat(response.getIsAiApiKeyConfigured()).isNotNull();
+    }
+
+    @Test
+    void getLoginConfiguration() {
+        // /api/v1/configs/login is the only config endpoint reachable without authentication:
+        // it must expose isBasicAuthInitialized and nothing else (no version, commit id, queue
+        // type, plugin hash, system namespace, url, ...).
+        TestAuthFilter.ENABLED = false;
+        try {
+            var response = client.toBlocking().retrieve(GET("/api/v1/configs/login"), Argument.mapOf(String.class, Object.class));
+
+            assertThat(response).containsOnlyKeys("isBasicAuthInitialized");
+            assertThat(response.get("isBasicAuthInitialized")).isEqualTo(true);
+        } finally {
+            TestAuthFilter.ENABLED = true;
+        }
     }
 
     @Test
@@ -257,16 +274,22 @@ class MiscControllerTest {
         }
     }
 
-    @FlakyTest(description = "BasicAuth state from other tests leaks; needs full security lifecycle isolation")
     @Test
     void logout_shouldRequireAuthentication() {
         // unlike /login, /logout must not bypass AuthenticationFilter: an unauthenticated caller has
         // no session to clear, so the request is rejected rather than silently accepted.
-        assertThatThrownBy(
-            () -> client.toBlocking().exchange(HttpRequest.POST("/api/v1/logout", null))
-        ).isInstanceOfSatisfying(
-            HttpClientResponseException.class, ex -> assertThat((CharSequence) ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED)
-        );
+        // TestAuthFilter transparently attaches a valid Authorization header to every outgoing test
+        // request unless disabled, so it must be turned off to genuinely exercise the unauthenticated path.
+        TestAuthFilter.ENABLED = false;
+        try {
+            assertThatThrownBy(
+                () -> client.toBlocking().exchange(HttpRequest.POST("/api/v1/logout", null))
+            ).isInstanceOfSatisfying(
+                HttpClientResponseException.class, ex -> assertThat((CharSequence) ex.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED)
+            );
+        } finally {
+            TestAuthFilter.ENABLED = true;
+        }
     }
 
     @Test

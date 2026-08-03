@@ -2,20 +2,9 @@ import {createApp} from "vue"
 import type {Router} from "vue-router"
 
 import "./utils/monacoEnvironment"
+import {setupPreloadErrorReloadHandler} from "./utils/preloadErrorReload"
 
-const NodeTypesRaw = import.meta.glob("/node_modules/@types/node/**/*.d.ts", {eager: true, query: "?raw", import: "default"}) as Record<string, string>
-function loadNodeTypes(tries = 0) {
-    import("monaco-editor/esm/vs/editor/editor.api").then(({languages}) => {
-        if (languages.typescript) {
-            for (const path in NodeTypesRaw) {
-                languages.typescript.typescriptDefaults.addExtraLib(NodeTypesRaw[path], `file://${path}`)
-            }
-        } else if (tries <= 15) {
-            setTimeout(() => loadNodeTypes(tries + 1), (tries + 1) * 100)
-        }
-    })
-}
-loadNodeTypes()
+setupPreloadErrorReloadHandler()
 
 import App from "./App.vue"
 import initApp from "./utils/init"
@@ -32,7 +21,11 @@ import {useUnsavedChangesStore} from "./stores/unsavedChanges"
 import {useMiscStore} from "override/stores/misc"
 import {TASK_ICON_INJECTION_KEY} from "@kestra-io/design-system"
 import TaskIcon from "./components/plugins/TaskIcon.vue"
+import {registerServiceWorker} from "./utils/serviceWorker"
+import {initPwaInstallCapture} from "./utils/pwaInstallState"
 
+void registerServiceWorker()
+initPwaInstallCapture()
 
 const app = createApp(App)
 
@@ -40,13 +33,15 @@ const app = createApp(App)
 // the design system depending on the app's plugin-icon API
 app.provide(TASK_ICON_INJECTION_KEY, TaskIcon)
 
-const handleAuthError = (error: Error, to: {fullPath: string}) => {
-    if (error.message?.includes("401")) {
+// Fail closed: an error probing the pre-auth endpoints is no evidence that setup is needed.
+const handleAuthError = (to: {fullPath: string}, error: unknown) => {
+    if ((error as {response?: {status?: number}} | null)?.response?.status === 401) {
         BasicAuth.logout()
         const fromPath = to.fullPath !== "/ui/login" ? to.fullPath : undefined
         return {name: "login", query: fromPath ? {from: fromPath} : {}}
-    }
-    return {name: "setup"}
+    } 
+    console.error("Error during authentication check:", error)
+    return
 }
 
 let httpClient: ReturnType<typeof setupKestraHttp> | undefined
@@ -95,9 +90,9 @@ async function beforeResolve(router: Router, to: any, from: any): Promise<unknow
         if(!httpClient) {
             setupAxios(router)
         }
-        const configs = await miscStore.loadConfigs()
+        const loginConfig = await miscStore.loadLoginConfig()
 
-        if(!configs.isBasicAuthInitialized) {
+        if(!loginConfig.isBasicAuthInitialized) {
             // Since, Configs takes preference
             // we need to check if any regex validation error in BE.
             const validationErrors = await miscStore.loadBasicAuthValidationErrors()
@@ -139,9 +134,12 @@ async function beforeResolve(router: Router, to: any, from: any): Promise<unknow
         if (isSetupInProgress === "true") {
             return {name: "setup"}
         }
+
+        // Now that the user is authenticated, load the full instance configuration.
+        await miscStore.loadConfigs()
     } catch (error) {
         console.error("Error during authentication check:", error)
-        return handleAuthError(error as Error, to)
+        return handleAuthError(to, error)
     }
 }
 

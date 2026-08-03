@@ -106,6 +106,9 @@ public record QueryFilter(
         STARTS_WITH,
         ENDS_WITH,
         CONTAINS,
+        NOT_CONTAINS,
+        IS_NULL,
+        IS_NOT_NULL,
         REGEX,
         PREFIX
     }
@@ -135,8 +138,12 @@ public record QueryFilter(
             case STARTS_WITH -> StartsWith.<T> builder().field(field).value(value.toString()).build();
             case ENDS_WITH -> EndsWith.<T> builder().field(field).value(value.toString()).build();
             case CONTAINS -> Contains.<T> builder().field(field).value(value.toString()).build();
+            case NOT_CONTAINS -> NotContains.<T> builder().field(field).value(value.toString()).build();
+            case IS_NULL -> IsNull.<T> builder().field(field).build();
+            case IS_NOT_NULL -> IsNotNull.<T> builder().field(field).build();
             case REGEX -> Regex.<T> builder().field(field).value(value.toString()).build();
             case PREFIX -> Prefix.<T> builder().field(field).value(value.toString()).build();
+            default -> throw new UnsupportedOperationException("Unsupported dashboard filter operation: %s.".formatted(this.operation));
         };
     }
 
@@ -187,7 +194,7 @@ public record QueryFilter(
         LABELS("labels") {
             @Override
             public List<Op> supportedOp() {
-                return List.of(Op.EQUALS, Op.NOT_EQUALS, Op.IN, Op.NOT_IN, Op.CONTAINS);
+                return List.of(Op.IN, Op.NOT_IN, Op.EQUALS, Op.NOT_EQUALS, Op.CONTAINS, Op.NOT_CONTAINS, Op.IS_NOT_NULL, Op.IS_NULL);
             }
         },
         @JsonProperty("tags")
@@ -411,7 +418,7 @@ public record QueryFilter(
         LEVEL("level") {
             @Override
             public List<Op> supportedOp() {
-                return List.of(Op.GREATER_THAN_OR_EQUAL_TO, Op.LESS_THAN_OR_EQUAL_TO);
+                return List.of(Op.GREATER_THAN_OR_EQUAL_TO, Op.LESS_THAN_OR_EQUAL_TO, Op.IN, Op.NOT_IN);
             }
         },
         @JsonProperty("path")
@@ -561,7 +568,7 @@ public record QueryFilter(
                 return List.of(
                     Field.QUERY, Field.SCOPE, Field.FLOW_ID, Field.START_DATE, Field.END_DATE,
                     Field.STATE, Field.LABELS, Field.TRIGGER_EXECUTION_ID, Field.CHILD_FILTER,
-                    Field.NAMESPACE, Field.KIND, Field.PARENT_ID
+                    Field.NAMESPACE, Field.KIND, Field.PARENT_ID, Field.TASK_ID
                 );
             }
         },
@@ -693,7 +700,8 @@ public record QueryFilter(
                     Field.TYPE,
                     Field.NAMESPACE,
                     Field.METADATA,
-                    Field.UPDATED
+                    Field.UPDATED,
+                    Field.LOCKED
                 );
             }
         },

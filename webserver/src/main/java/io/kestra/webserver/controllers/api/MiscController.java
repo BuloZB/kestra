@@ -124,7 +124,10 @@ public class MiscController {
 
     @Get("/configs")
     @ExecuteOn(TaskExecutors.IO)
-    @Operation(tags = { "Misc" }, summary = "Retrieve the instance configuration.", description = "Global endpoint available to all users.")
+    @Operation(
+        tags = { "Misc" }, summary = "Retrieve the instance configuration.",
+        description = "Requires authentication; see /configs/login for the public, unauthenticated subset used by the login page."
+    )
     public Configuration getConfiguration() throws JsonProcessingException { // JsonProcessingException might be thrown in EE
         Configuration.ConfigurationBuilder<?, ?> builder = Configuration
             .builder()
@@ -144,14 +147,14 @@ public class MiscController {
             )
             .isAiEnabled(applicationContext.containsBean(AiController.class))
             .isAiApiKeyConfigured(aiServiceManager.map(AiServiceManager::hasConfiguredProvider).orElse(false))
-            .isBasicAuthInitialized(basicAuthService.map(BasicAuthService::isBasicAuthInitialized).orElse(false))
+            .isBasicAuthInitialized(isBasicAuthInitialized())
             .systemNamespace(systemFlowsConfiguration.namespace())
             .hiddenLabelsPrefixes(hiddenLabelsPrefixes)
             .url(kestraUrl)
             .pluginsHash(pluginRegistry.hash())
             .chartDefaultDuration(this.chartDefaultDuration)
             .flowTemplate(this.flowTemplate)
-            .isConcurrencyViewEnabled(!this.queueType.equals("kafka"));
+            ;
 
         if (this.environmentName != null || this.environmentColor != null) {
             builder.environment(
@@ -163,6 +166,20 @@ public class MiscController {
         }
 
         return builder.build();
+    }
+
+    @Get("/configs/login")
+    @ExecuteOn(TaskExecutors.IO)
+    @Operation(
+        tags = { "Misc" }, summary = "Retrieve the configuration required by the login page.",
+        description = "Public endpoint available to unauthenticated users; exposes only what the login/setup UI needs."
+    )
+    public LoginConfiguration getLoginConfiguration() {
+        return new LoginConfiguration(isBasicAuthInitialized());
+    }
+
+    private boolean isBasicAuthInitialized() {
+        return basicAuthService.map(BasicAuthService::isBasicAuthInitialized).orElse(false);
     }
 
     @Get("/{tenant}/usages/all")
@@ -203,7 +220,10 @@ public class MiscController {
 
     @Post("/login")
     @ExecuteOn(TaskExecutors.IO)
-    @Operation(tags = { "Misc" }, summary = "Authenticate with basic auth credentials.", description = "On success, issues an HttpOnly session cookie; the credentials never need to be readable by client-side JavaScript.")
+    @Operation(
+        tags = { "Misc" }, summary = "Authenticate with basic auth credentials.",
+        description = "On success, issues an HttpOnly session cookie; the credentials never need to be readable by client-side JavaScript."
+    )
     public MutableHttpResponse<?> login(HttpRequest<?> request, @Body LoginRequest loginRequest) {
         BasicAuthService service = basicAuthService
             .orElseThrow(() -> new IllegalStateException("basicAuthService bean is required in OSS"));
@@ -237,7 +257,8 @@ public class MiscController {
             .sameSite(SameSite.Strict);
     }
 
-    public record LoginRequest(String username, String password) {}
+    public record LoginRequest(String username, String password) {
+    }
 
     @Get("/pebble/filters")
     @ExecuteOn(TaskExecutors.IO)
@@ -297,8 +318,6 @@ public class MiscController {
         Boolean isBasicAuthInitialized;
 
         Long pluginsHash;
-
-        Boolean isConcurrencyViewEnabled;
     }
 
     @Value
@@ -320,5 +339,11 @@ public class MiscController {
     public static class ApiUsage {
         private FlowUsage flows;
         private ExecutionUsage executions;
+    }
+
+    /**
+     * Minimal configuration exposed to unauthenticated callers for the login/setup UI.
+     */
+    public record LoginConfiguration(@JsonInclude Boolean isBasicAuthInitialized) {
     }
 }

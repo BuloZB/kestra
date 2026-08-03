@@ -170,8 +170,20 @@ public abstract class AbstractJdbcRepository<T> {
             .set(KEY_FIELD, key(entity))
             .set(finalFields)
             .onDuplicateKeyUpdate()
-            .set(finalFields)
+            .set(excluded(finalFields))
             .execute();
+    }
+
+    /**
+     * Turns a column-to-value map into a column-to-{@code EXCLUDED}/{@code VALUES(...)} map, so the
+     * update clause of an upsert re-references the row already bound by the insert clause instead of
+     * binding the (potentially large) value a second time. jOOQ renders this per-dialect: the
+     * {@code EXCLUDED} pseudo-table on PostgreSQL, {@code VALUES(column)} on MySQL/MariaDB.
+     */
+    protected static Map<Field<Object>, Object> excluded(Map<Field<Object>, Object> fields) {
+        Map<Field<Object>, Object> excluded = HashMap.newHashMap(fields.size());
+        fields.keySet().forEach(field -> excluded.put(field, DSL.excluded(field)));
+        return excluded;
     }
 
     /**
@@ -256,7 +268,7 @@ public abstract class AbstractJdbcRepository<T> {
             .set(KEY_FIELD, key(entity))
             .set(fields)
             .onDuplicateKeyUpdate()
-            .set(fields);
+            .set(excluded(fields));
     }
 
     public int delete(T entity) {
@@ -313,8 +325,12 @@ public abstract class AbstractJdbcRepository<T> {
                 return ZonedDateTime.of(year, month, day, 0, 0, 0, 0, TimeZone.getDefault().toZoneId()).toInstant();
             }
             case "week" -> {
-                LocalDate weekDate = LocalDate.ofYearDay(year, week * 7);
-                return weekDate.atStartOfDay().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).toInstant(ZonedDateTime.now().getOffset());
+                // week * 7 can fall outside the 1..365/366 day-of-year range (e.g. week 53 -> 371, or
+                // week 0 returned by some SQL WEEK() modes), which would make ofYearDay throw, so clamp it.
+                int maxDayOfYear = LocalDate.of(year, 12, 31).getDayOfYear();
+                int dayOfYear = Math.min(Math.max(week * 7, 1), maxDayOfYear);
+                LocalDate weekDate = LocalDate.ofYearDay(year, dayOfYear).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                return weekDate.atStartOfDay(TimeZone.getDefault().toZoneId()).toInstant();
             }
             case "month" -> {
                 return ZonedDateTime.of(year, month, 1, 0, 0, 0, 0, TimeZone.getDefault().toZoneId()).toInstant();

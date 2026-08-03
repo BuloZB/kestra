@@ -91,6 +91,15 @@ export default {
             "select_start_date": "Select start date",
             "select_end_date": "Select end date",
             "filters_added": "{selected} of {total} filters added",
+            "label_comparators": {
+                "has_any_of": "has any of",
+                "has_none_of": "has none of",
+                "has_all_of": "has all of",
+                "contains": "contains",
+                "does_not_contain": "does not contain",
+                "is_set": "is set",
+                "is_not_set": "is not set",
+            },
             "comparator_descriptions": {
                 "EQUALS": "Exact match - value must be identical",
                 "NOT_EQUALS": "Excludes exact matches - value must be different",
@@ -103,6 +112,9 @@ export default {
                 "STARTS_WITH": "Text begins with the specified characters",
                 "ENDS_WITH": "Text ends with the specified characters",
                 "CONTAINS": "Text includes the specified characters anywhere",
+                "NOT_CONTAINS": "Text does not include the specified characters anywhere",
+                "IS_NULL": "Label key does not exist",
+                "IS_NOT_NULL": "Label key exists with any value",
                 "REGEX": "Advanced pattern matching using regular expressions",
                 "PREFIX": "Namespace hierarchy matching (e.g., 'com.example' matches 'com.example.app')",
             },
@@ -452,6 +464,9 @@ export default {
             "columns": "Spalten",
             "comparator_descriptions": {
                 "CONTAINS": "Text enthält die angegebenen Zeichen überall",
+                "NOT_CONTAINS": "Text enthält die angegebenen Zeichen nirgends",
+                "IS_NULL": "Label-Schlüssel ist nicht vorhanden",
+                "IS_NOT_NULL": "Label-Schlüssel ist mit beliebigem Wert vorhanden",
                 "ENDS_WITH": "Der Text endet mit den angegebenen Zeichen",
                 "EQUALS": "Exakte Übereinstimmung - Wert muss identisch sein",
                 "GREATER_THAN": "Numerischer/Datum-Vergleich - Wert muss größer sein",
@@ -503,6 +518,15 @@ export default {
                 "test_description": "Ausführungen ausgelöst durch Unit Tests",
             },
             "filters_added": "{selected} von {total} Filtern hinzugefügt",
+            "label_comparators": {
+                "has_any_of": "hat eines von",
+                "has_none_of": "hat keines von",
+                "has_all_of": "hat alle von",
+                "contains": "enthält",
+                "does_not_contain": "enthält nicht",
+                "is_set": "ist gesetzt",
+                "is_not_set": "ist nicht gesetzt",
+            },
             "parentId": {
                 "description": "Nach Parent-ID filtern",
                 "label": "Parent-ID",
@@ -811,6 +835,26 @@ export default {
                 "description": "Nach Worker-ID filtern",
                 "label": "Worker-ID",
             },
+            "mobile_filters": "Filter",
+            "filters_title": "Filter",
+            "all_filters": "Alle Filter",
+            "my_filters_saved": "Meine Filter gespeichert",
+            "member": {
+                "label": "Mitglied",
+                "description": "Filtern nach Mitglied",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "Nach Task-Bezeichner filtern",
+            },
+            "taskRunId": {
+                "label": "Task Ausführungs-ID",
+                "description": "Filtern nach Task-Ausführungs-ID",
+            },
+            "attemptNumber": {
+                "label": "Versuchsnummer",
+                "description": "Filtern nach Task-Ausführungsversuchsnummer",
+            },
         },
     },
     es: {
@@ -849,6 +893,9 @@ export default {
             "columns": "Columnas",
             "comparator_descriptions": {
                 "CONTAINS": "El texto incluye los caracteres especificados en cualquier parte",
+                "NOT_CONTAINS": "El texto no incluye los caracteres especificados en ninguna parte",
+                "IS_NULL": "La clave de label no existe",
+                "IS_NOT_NULL": "La clave de label existe con cualquier valor",
                 "ENDS_WITH": "El texto termina con los caracteres especificados",
                 "EQUALS": "Coincidencia exacta: el valor debe ser idéntico",
                 "GREATER_THAN": "Comparación numérica/fecha - el valor debe ser mayor",
@@ -900,6 +947,15 @@ export default {
                 "test_description": "Ejecuciones activadas por Unit Tests",
             },
             "filters_added": "{selected} de {total} filtros añadidos",
+            "label_comparators": {
+                "has_any_of": "tiene alguno de",
+                "has_none_of": "no tiene ninguno de",
+                "has_all_of": "tiene todos",
+                "contains": "contiene",
+                "does_not_contain": "no contiene",
+                "is_set": "está definido",
+                "is_not_set": "no está definido",
+            },
             "parentId": {
                 "description": "Filtrar por parent ID",
                 "label": "ID de Parent",
@@ -1208,6 +1264,26 @@ export default {
                 "description": "Filtrar por ID de worker",
                 "label": "ID del Worker",
             },
+            "mobile_filters": "Filtros",
+            "filters_title": "Filtros",
+            "all_filters": "Todos los Filtros",
+            "my_filters_saved": "Mis filtros guardados",
+            "member": {
+                "label": "Miembro",
+                "description": "Filtrar por miembro",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "Filtrar por identificador de task",
+            },
+            "taskRunId": {
+                "label": "ID de Ejecución de Task",
+                "description": "Filtrar por identificador de ejecución de task",
+            },
+            "attemptNumber": {
+                "label": "Número de intento",
+                "description": "Filtrar por número de intento de ejecución de task",
+            },
         },
     },
     fr: {
@@ -1246,6 +1322,9 @@ export default {
             "columns": "Colonnes",
             "comparator_descriptions": {
                 "CONTAINS": "Le texte inclut les caractères spécifiés n'importe où",
+                "NOT_CONTAINS": "Le texte ne contient pas les caractères indiqués",
+                "IS_NULL": "La clé de label n'existe pas",
+                "IS_NOT_NULL": "La clé de label existe avec n'importe quelle valeur",
                 "ENDS_WITH": "Le texte se termine par les caractères spécifiés",
                 "EQUALS": "Correspondance exacte - la valeur doit être identique",
                 "GREATER_THAN": "Comparaison numérique/date - la valeur doit être supérieure",
@@ -1297,6 +1376,15 @@ export default {
                 "test_description": "Exécutions déclenchées par les tests unitaires",
             },
             "filters_added": "{selected} sur {total} filtres ajoutés",
+            "label_comparators": {
+                "has_any_of": "contient l'un de",
+                "has_none_of": "ne contient aucun de",
+                "has_all_of": "contient tous les",
+                "contains": "contient",
+                "does_not_contain": "ne contient pas",
+                "is_set": "est défini",
+                "is_not_set": "n'est pas défini",
+            },
             "parentId": {
                 "description": "Filtrer par parent ID",
                 "label": "ID de parent",
@@ -1605,6 +1693,26 @@ export default {
                 "description": "Filtrer par ID de worker",
                 "label": "ID du worker",
             },
+            "mobile_filters": "Filtres",
+            "filters_title": "Filtres",
+            "all_filters": "Tous les filtres",
+            "my_filters_saved": "Mes Filtres enregistrés",
+            "member": {
+                "label": "Membre",
+                "description": "Filtrer par membre",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "Filtrer par identifiant de task",
+            },
+            "taskRunId": {
+                "label": "ID d'exécution de Task",
+                "description": "Filtrer par id d'exécution de task",
+            },
+            "attemptNumber": {
+                "label": "Numéro de tentative",
+                "description": "Filtrer par numéro de tentative d'exécution de task",
+            },
         },
     },
     hi: {
@@ -1643,6 +1751,9 @@ export default {
             "columns": "कॉलम्स",
             "comparator_descriptions": {
                 "CONTAINS": "पाठ में निर्दिष्ट वर्ण कहीं भी शामिल हैं",
+                "NOT_CONTAINS": "टेक्स्ट में निर्दिष्ट वर्ण कहीं भी शामिल नहीं हैं",
+                "IS_NULL": "Label key मौजूद नहीं है",
+                "IS_NOT_NULL": "Label key किसी भी value के साथ मौजूद है",
                 "ENDS_WITH": "पाठ निर्दिष्ट वर्णों के साथ समाप्त होता है",
                 "EQUALS": "सटीक मिलान - value समान होना चाहिए",
                 "GREATER_THAN": "संख्यात्मक/तिथि तुलना - value बड़ा होना चाहिए",
@@ -1694,6 +1805,15 @@ export default {
                 "test_description": "यूनिट टेस्ट द्वारा ट्रिगर की गई Executions",
             },
             "filters_added": "{total} में से {selected} फ़िल्टर जोड़े गए",
+            "label_comparators": {
+                "has_any_of": "इनमें से कोई है",
+                "has_none_of": "इनमें से कोई नहीं है",
+                "has_all_of": "इनमें से सभी हैं",
+                "contains": "शामिल है",
+                "does_not_contain": "शामिल नहीं है",
+                "is_set": "सेट है",
+                "is_not_set": "सेट नहीं है",
+            },
             "parentId": {
                 "description": "parent ID द्वारा फ़िल्टर करें",
                 "label": "Parent ID",
@@ -2002,6 +2122,26 @@ export default {
                 "description": "वर्कर ID द्वारा फ़िल्टर करें",
                 "label": "वर्कर ID",
             },
+            "mobile_filters": "फ़िल्टर",
+            "filters_title": "फ़िल्टर",
+            "all_filters": "सभी फ़िल्टर",
+            "my_filters_saved": "मेरे फ़िल्टर सहेजे गए",
+            "member": {
+                "label": "सदस्य",
+                "description": "सदस्य द्वारा फ़िल्टर करें",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "task identifier द्वारा फ़िल्टर करें",
+            },
+            "taskRunId": {
+                "label": "Task रन ID",
+                "description": "task run पहचानकर्ता द्वारा फ़िल्टर करें",
+            },
+            "attemptNumber": {
+                "label": "प्रयास संख्या",
+                "description": "task run प्रयास संख्या द्वारा फ़िल्टर करें",
+            },
         },
     },
     it: {
@@ -2040,6 +2180,9 @@ export default {
             "columns": "Colonne",
             "comparator_descriptions": {
                 "CONTAINS": "Il testo include i caratteri specificati ovunque",
+                "NOT_CONTAINS": "Il testo non include i caratteri specificati",
+                "IS_NULL": "La chiave label non esiste",
+                "IS_NOT_NULL": "La chiave label esiste con qualsiasi valore",
                 "ENDS_WITH": "Il testo termina con i caratteri specificati",
                 "EQUALS": "Corrispondenza esatta - il valore deve essere identico",
                 "GREATER_THAN": "Confronto numerico/data - il valore deve essere maggiore",
@@ -2091,6 +2234,15 @@ export default {
                 "test_description": "Esecuzioni attivate dai Unit Test",
             },
             "filters_added": "{selected} di {total} filtri aggiunti",
+            "label_comparators": {
+                "has_any_of": "ha almeno uno di",
+                "has_none_of": "non ha nessuno di",
+                "has_all_of": "ha tutti",
+                "contains": "contiene",
+                "does_not_contain": "non contiene",
+                "is_set": "è impostato",
+                "is_not_set": "non è impostato",
+            },
             "parentId": {
                 "description": "Filtra per parent ID",
                 "label": "ID del parent",
@@ -2399,6 +2551,26 @@ export default {
                 "description": "Filtra per ID worker",
                 "label": "ID del worker",
             },
+            "mobile_filters": "Filtri",
+            "filters_title": "Filtri",
+            "all_filters": "Tutti i Filtri",
+            "my_filters_saved": "I miei Filtri salvati",
+            "member": {
+                "label": "Membro",
+                "description": "Filtra per membro",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "Filtra per identificatore task",
+            },
+            "taskRunId": {
+                "label": "ID Esecuzione Task",
+                "description": "Filtra per identificatore di esecuzione del task",
+            },
+            "attemptNumber": {
+                "label": "Numero tentativo",
+                "description": "Filtra per numero di tentativo di esecuzione del task",
+            },
         },
     },
     ja: {
@@ -2437,6 +2609,9 @@ export default {
             "columns": "列",
             "comparator_descriptions": {
                 "CONTAINS": "テキストに指定された文字が含まれている",
+                "NOT_CONTAINS": "テキストに指定した文字が含まれていません",
+                "IS_NULL": "Label key が存在しません",
+                "IS_NOT_NULL": "Label key が任意の value で存在します",
                 "ENDS_WITH": "指定された文字でテキストが終了します",
                 "EQUALS": "完全一致 - valueは同一でなければなりません",
                 "GREATER_THAN": "数値/日付の比較 - 値はより大きくなければなりません",
@@ -2488,6 +2663,15 @@ export default {
                 "test_description": "ユニットテストによってトリガーされた実行",
             },
             "filters_added": "{total} 個のフィルターのうち {selected} 個が追加されました",
+            "label_comparators": {
+                "has_any_of": "いずれかを持つ",
+                "has_none_of": "いずれも持たない",
+                "has_all_of": "すべてを持つ",
+                "contains": "含む",
+                "does_not_contain": "含まない",
+                "is_set": "設定済み",
+                "is_not_set": "未設定",
+            },
             "parentId": {
                 "description": "parent IDでフィルター",
                 "label": "Parent ID",
@@ -2796,6 +2980,26 @@ export default {
                 "description": "ワーカーIDでフィルター",
                 "label": "ワーカーID",
             },
+            "mobile_filters": "フィルター",
+            "filters_title": "フィルター",
+            "all_filters": "すべてのフィルター",
+            "my_filters_saved": "マイフィルター保存済み",
+            "member": {
+                "label": "メンバー",
+                "description": "メンバーでフィルタ",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "task 識別子でフィルター",
+            },
+            "taskRunId": {
+                "label": "Task 実行 ID",
+                "description": "task実行IDで絞り込む",
+            },
+            "attemptNumber": {
+                "label": "試行番号",
+                "description": "task実行の試行回数でフィルター",
+            },
         },
     },
     ko: {
@@ -2834,6 +3038,9 @@ export default {
             "columns": "열",
             "comparator_descriptions": {
                 "CONTAINS": "텍스트에 지정된 문자가 포함되어 있음",
+                "NOT_CONTAINS": "텍스트에 지정된 문자가 포함되지 않음",
+                "IS_NULL": "Label key가 존재하지 않음",
+                "IS_NOT_NULL": "Label key가 임의의 value와 함께 존재함",
                 "ENDS_WITH": "지정된 문자로 텍스트가 끝납니다",
                 "EQUALS": "정확히 일치 - value가 동일해야 합니다",
                 "GREATER_THAN": "숫자/날짜 비교 - value는 더 커야 합니다",
@@ -2885,6 +3092,15 @@ export default {
                 "test_description": "단위 테스트에 의해 트리거된 실행",
             },
             "filters_added": "{total}개의 필터 중 {selected}개 추가됨",
+            "label_comparators": {
+                "has_any_of": "다음 중 하나 포함",
+                "has_none_of": "다음 중 아무것도 포함 안 함",
+                "has_all_of": "다음 모두 포함",
+                "contains": "포함",
+                "does_not_contain": "포함하지 않음",
+                "is_set": "설정됨",
+                "is_not_set": "설정되지 않음",
+            },
             "parentId": {
                 "description": "parent ID로 필터링",
                 "label": "Parent ID",
@@ -3193,6 +3409,26 @@ export default {
                 "description": "작업자 ID로 필터링",
                 "label": "작업자 ID",
             },
+            "mobile_filters": "필터",
+            "filters_title": "필터",
+            "all_filters": "모든 필터",
+            "my_filters_saved": "내 필터 저장됨",
+            "member": {
+                "label": "회원",
+                "description": "멤버별 필터링",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "task 식별자로 필터링",
+            },
+            "taskRunId": {
+                "label": "Task 실행 ID",
+                "description": "`task` 실행 `id`로 필터링",
+            },
+            "attemptNumber": {
+                "label": "시도 횟수",
+                "description": "task 실행 시도 번호로 필터링",
+            },
         },
     },
     pl: {
@@ -3231,6 +3467,9 @@ export default {
             "columns": "Kolumny",
             "comparator_descriptions": {
                 "CONTAINS": "Tekst zawiera określone znaki w dowolnym miejscu",
+                "NOT_CONTAINS": "Tekst nigdzie nie zawiera podanych znaków",
+                "IS_NULL": "Klucz label nie istnieje",
+                "IS_NOT_NULL": "Klucz label istnieje z dowolną value",
                 "ENDS_WITH": "Tekst kończy się określonymi znakami",
                 "EQUALS": "Dokładne dopasowanie - wartość musi być identyczna",
                 "GREATER_THAN": "Porównanie numeryczne/datowe - wartość musi być większa",
@@ -3282,6 +3521,15 @@ export default {
                 "test_description": "Wykonania wyzwolone przez testy jednostkowe",
             },
             "filters_added": "{selected} z {total} filtrów dodanych",
+            "label_comparators": {
+                "has_any_of": "ma dowolny z",
+                "has_none_of": "nie ma żadnego z",
+                "has_all_of": "ma wszystkie z",
+                "contains": "zawiera",
+                "does_not_contain": "nie zawiera",
+                "is_set": "jest ustawione",
+                "is_not_set": "nie jest ustawione",
+            },
             "parentId": {
                 "description": "Filtruj według parent ID",
                 "label": "Identyfikator parent",
@@ -3590,6 +3838,26 @@ export default {
                 "description": "Filtruj według worker ID",
                 "label": "Identyfikator Worker",
             },
+            "mobile_filters": "Filtry",
+            "filters_title": "Filtry",
+            "all_filters": "Wszystkie Filtry",
+            "my_filters_saved": "Moje Filtry zapisane",
+            "member": {
+                "label": "Członek",
+                "description": "Filtruj według członka",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "Filtruj według identyfikatora taska",
+            },
+            "taskRunId": {
+                "label": "ID Uruchomienia Taska",
+                "description": "Filtruj według identyfikatora wykonania taska",
+            },
+            "attemptNumber": {
+                "label": "Numer próby",
+                "description": "Filtruj według numeru próby wykonania taska",
+            },
         },
     },
     pt: {
@@ -3628,6 +3896,9 @@ export default {
             "columns": "Colunas",
             "comparator_descriptions": {
                 "CONTAINS": "O texto inclui os caracteres especificados em qualquer lugar",
+                "NOT_CONTAINS": "O texto não inclui os caracteres especificados em nenhum lugar",
+                "IS_NULL": "A chave label não existe",
+                "IS_NOT_NULL": "A chave label existe com qualquer value",
                 "ENDS_WITH": "O texto termina com os caracteres especificados",
                 "EQUALS": "Correspondência exata - o valor deve ser idêntico",
                 "GREATER_THAN": "Comparação numérica/data - o valor deve ser maior",
@@ -3679,6 +3950,15 @@ export default {
                 "test_description": "Execuções triggeradas por Unit Tests",
             },
             "filters_added": "{selected} de {total} filtros adicionados",
+            "label_comparators": {
+                "has_any_of": "tem qualquer um de",
+                "has_none_of": "não tem nenhum de",
+                "has_all_of": "tem todos de",
+                "contains": "contém",
+                "does_not_contain": "não contém",
+                "is_set": "está definido",
+                "is_not_set": "não está definido",
+            },
             "parentId": {
                 "description": "Filtrar por parent ID",
                 "label": "ID do Parent",
@@ -3987,6 +4267,26 @@ export default {
                 "description": "Filtrar por ID do worker",
                 "label": "ID do Worker",
             },
+            "mobile_filters": "Filtros",
+            "filters_title": "Filtros",
+            "all_filters": "Todos os Filtros",
+            "my_filters_saved": "Meus Filtros salvos",
+            "member": {
+                "label": "Membro",
+                "description": "Filtrar por membro",
+            },
+            "taskId": {
+                "label": "ID da Task",
+                "description": "Filtrar por identificador de task",
+            },
+            "taskRunId": {
+                "label": "ID da Execução da Task",
+                "description": "Filtrar por identificador de execução de task",
+            },
+            "attemptNumber": {
+                "label": "Número da Tentativa",
+                "description": "Filtrar por número de tentativa de execução de task",
+            },
         },
     },
     pt_BR: {
@@ -4025,6 +4325,9 @@ export default {
             "columns": "Colunas",
             "comparator_descriptions": {
                 "CONTAINS": "O texto inclui os caracteres especificados em qualquer lugar",
+                "NOT_CONTAINS": "O texto não inclui os caracteres especificados em nenhum lugar",
+                "IS_NULL": "A chave label não existe",
+                "IS_NOT_NULL": "A chave label existe com qualquer value",
                 "ENDS_WITH": "O texto termina com os caracteres especificados",
                 "EQUALS": "Correspondência exata - o valor deve ser idêntico",
                 "GREATER_THAN": "Comparação numérica/data - o valor deve ser maior",
@@ -4076,6 +4379,15 @@ export default {
                 "test_description": "Execuções acionadas por Unit Tests",
             },
             "filters_added": "{selected} de {total} filtros adicionados",
+            "label_comparators": {
+                "has_any_of": "tem qualquer um de",
+                "has_none_of": "não tem nenhum de",
+                "has_all_of": "tem todos de",
+                "contains": "contém",
+                "does_not_contain": "não contém",
+                "is_set": "está definido",
+                "is_not_set": "não está definido",
+            },
             "parentId": {
                 "description": "Filtrar por parent ID",
                 "label": "ID do Parent",
@@ -4384,6 +4696,26 @@ export default {
                 "description": "Filtrar por ID do worker",
                 "label": "ID do Worker",
             },
+            "mobile_filters": "Filtros",
+            "filters_title": "Filtros",
+            "all_filters": "Todos os Filtros",
+            "my_filters_saved": "Meus Filtros salvos",
+            "member": {
+                "label": "Membro",
+                "description": "Filtrar por membro",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "Filtrar por identificador da task",
+            },
+            "taskRunId": {
+                "label": "ID da Execução da Task",
+                "description": "Filtrar por identificador de execução de task",
+            },
+            "attemptNumber": {
+                "label": "Número da Tentativa",
+                "description": "Filtrar por número da tentativa de execução da task",
+            },
         },
     },
     ru: {
@@ -4422,6 +4754,9 @@ export default {
             "columns": "Столбцы",
             "comparator_descriptions": {
                 "CONTAINS": "Текст содержит указанные символы в любом месте",
+                "NOT_CONTAINS": "Текст не содержит указанные символы",
+                "IS_NULL": "Ключ label не существует",
+                "IS_NOT_NULL": "Ключ label существует с любым value",
                 "ENDS_WITH": "Текст заканчивается указанными символами",
                 "EQUALS": "Точное совпадение - значение должно быть идентичным",
                 "GREATER_THAN": "Сравнение чисел/дат - значение должно быть больше",
@@ -4473,6 +4808,15 @@ export default {
                 "test_description": "Запуски, инициированные Unit Tests",
             },
             "filters_added": "{selected} из {total} фильтров добавлено",
+            "label_comparators": {
+                "has_any_of": "содержит любой из",
+                "has_none_of": "не содержит ни одного из",
+                "has_all_of": "содержит все из",
+                "contains": "содержит",
+                "does_not_contain": "не содержит",
+                "is_set": "задан",
+                "is_not_set": "не задан",
+            },
             "parentId": {
                 "description": "Фильтр по parent ID",
                 "label": "Идентификатор parent",
@@ -4781,6 +5125,26 @@ export default {
                 "description": "Фильтр по worker ID",
                 "label": "ID worker",
             },
+            "mobile_filters": "Фильтры",
+            "filters_title": "Фильтры",
+            "all_filters": "Все фильтры",
+            "my_filters_saved": "Мои фильтры сохранены",
+            "member": {
+                "label": "Член",
+                "description": "Фильтровать по участнику",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "Фильтровать по task идентификатору",
+            },
+            "taskRunId": {
+                "label": "ID запуска Task",
+                "description": "Фильтровать по идентификатору запуска task",
+            },
+            "attemptNumber": {
+                "label": "Номер попытки",
+                "description": "Фильтровать по номеру попытки выполнения task",
+            },
         },
     },
     zh_CN: {
@@ -4819,6 +5183,9 @@ export default {
             "columns": "列",
             "comparator_descriptions": {
                 "CONTAINS": "文本包含指定字符的任意位置",
+                "NOT_CONTAINS": "文本不包含指定字符",
+                "IS_NULL": "Label key 不存在",
+                "IS_NOT_NULL": "Label key 存在且可为任意 value",
                 "ENDS_WITH": "文本以指定字符结束",
                 "EQUALS": "完全匹配 - value 必须相同",
                 "GREATER_THAN": "数字/日期比较 - 值必须更大",
@@ -4870,6 +5237,15 @@ export default {
                 "test_description": "单元测试触发的执行",
             },
             "filters_added": "已添加 {total} 个过滤器中的 {selected} 个",
+            "label_comparators": {
+                "has_any_of": "包含任意一个",
+                "has_none_of": "不包含任何一个",
+                "has_all_of": "包含全部",
+                "contains": "包含",
+                "does_not_contain": "不包含",
+                "is_set": "已设置",
+                "is_not_set": "未设置",
+            },
             "parentId": {
                 "description": "按 parent ID 筛选",
                 "label": "Parent ID",
@@ -5177,6 +5553,26 @@ export default {
             "workerId": {
                 "description": "按worker ID筛选",
                 "label": "工作者 ID",
+            },
+            "mobile_filters": "筛选器",
+            "filters_title": "筛选器",
+            "all_filters": "所有筛选器",
+            "my_filters_saved": "我的筛选器已保存",
+            "member": {
+                "label": "成员",
+                "description": "按成员筛选",
+            },
+            "taskId": {
+                "label": "Task ID",
+                "description": "按 task 标识符筛选",
+            },
+            "taskRunId": {
+                "label": "Task 运行 ID",
+                "description": "按 task 运行标识符筛选",
+            },
+            "attemptNumber": {
+                "label": "尝试次数",
+                "description": "按 task 运行尝试编号筛选",
             },
         },
     },

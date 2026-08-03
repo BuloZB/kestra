@@ -120,7 +120,7 @@
 
 
     const checkServerInitialization = async () => {
-        const response = await axios.get(`${apiUrlWithoutTenants()}/configs`, {timeout: 10000})
+        const response = await axios.get(`${apiUrlWithoutTenants()}/configs/login`, {timeout: 10000})
         return response.data?.isBasicAuthInitialized
     }
 
@@ -167,7 +167,7 @@
             if (shouldShowHelloDialog()) localStorage.setItem("showSurveyDialogAfterLogin", "true")
 
             if (await shouldShowWelcome()) {
-                router.push({name: "welcome"})
+                router.push({name: "ai"})
             } else if (redirectPath.value) {
                 router.push(redirectPath.value)
             } else {

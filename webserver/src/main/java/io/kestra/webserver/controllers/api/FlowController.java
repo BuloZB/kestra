@@ -10,6 +10,7 @@ import org.reactivestreams.Publisher;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.kestra.core.exceptions.FlowNotFoundException;
 import io.kestra.core.exceptions.FlowProcessingException;
 import io.kestra.core.exceptions.IllegalVariableEvaluationException;
 import io.kestra.core.exceptions.InternalException;
@@ -28,6 +29,7 @@ import io.kestra.core.models.validations.ModelValidator;
 import io.kestra.core.models.validations.ValidateConstraintViolation;
 import io.kestra.core.queues.QueueException;
 import io.kestra.core.repositories.FlowRepositoryInterface;
+import io.kestra.core.security.SecurityConfiguration;
 import io.kestra.core.serializers.JacksonMapper;
 import io.kestra.core.serializers.YamlParser;
 import io.kestra.core.services.ExpressionCategory;
@@ -63,6 +65,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.SneakyThrows;
@@ -101,6 +104,9 @@ public class FlowController {
 
     @Inject
     private ExpressionContextService expressionContextService;
+
+    @Inject
+    private SecurityConfiguration securityConfiguration;
 
     @ExecuteOn(TaskExecutors.IO)
     @Get(uri = "{namespace}/{id}/graph")
@@ -225,7 +231,7 @@ public class FlowController {
     @Operation(tags = { "Flows" }, summary = "Search for flows")
     public PagedResults<Flow> searchFlows(
         @Parameter(description = "The current page") @QueryValue(defaultValue = "1") @Min(1) int page,
-        @Parameter(description = "The current page size") @QueryValue(defaultValue = "10") @Min(1) int size,
+        @Parameter(description = "The current page size") @QueryValue(defaultValue = "10") @Min(1) @Max(PageableUtils.MAX_PAGE_SIZE) int size,
         @Parameter(
             description = "The sort of current page", examples = {
                 @ExampleObject(name = "Sort by namespace in ascending order", value = "namespace:asc"),
@@ -256,7 +262,7 @@ public class FlowController {
     @Operation(tags = { "Flows" }, summary = "Search for flows source code")
     public PagedResults<SearchResult<Flow>> searchFlowsBySourceCode(
         @Parameter(description = "The current page") @QueryValue(defaultValue = "1") @Min(1) int page,
-        @Parameter(description = "The current page size") @QueryValue(defaultValue = "10") @Min(1) int size,
+        @Parameter(description = "The current page size") @QueryValue(defaultValue = "10") @Min(1) @Max(PageableUtils.MAX_PAGE_SIZE) int size,
         @Parameter(description = "The sort of current page") @Nullable @QueryValue List<String> sort,
         @Parameter(description = "A string filter") @Nullable @QueryValue(value = "q") String query,
         @Parameter(description = "A namespace filter prefix") @Nullable @QueryValue String namespace) throws HttpStatusException {
@@ -470,7 +476,7 @@ public class FlowController {
         Optional<Flow> existingFlow = flowRepository.findById(tenantId, namespace, id);
 
         if (existingFlow.isEmpty()) {
-            return HttpResponse.status(HttpStatus.NOT_FOUND);
+            throw new FlowNotFoundException(namespace, id);
         }
 
         // Parse source as RawFlow. Draft is metadata about the revision, not part of the YAML
@@ -856,7 +862,7 @@ public class FlowController {
         String tenantId = tenantService.resolveTenant();
         final List<String> wrongFiles = new ArrayList<>();
         try {
-            HasSource.readSourceFile(fileUpload, (source, name) ->
+            HasSource.readSourceFile(securityConfiguration.zipBombProtection(), fileUpload, (source, name) ->
             {
                 try {
                     this.importFlow(tenantId, source);
