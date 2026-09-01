@@ -33,7 +33,7 @@
                         <EnterpriseBadge :enable="(tab as Tab).locked">
                             <span class="tab-label-wrapper">
                                 {{ tab.title }}
-                                <KsBadge v-if="tab.count !== undefined" :value="tab.count" type="primary" class="inline-badge" />
+                                <KsBadge v-if="tab.count !== undefined" :value="tab.count" type="primary" inline />
                             </span>
                         </EnterpriseBadge>
                     </component>
@@ -52,9 +52,11 @@
         </router-view>
 
         <!-- Embedded mode, blueprint modal, and pages not yet migrated to child routes:
-             keep the dynamic component path (no URL segment to drive a router-view). -->
+             keep the dynamic component path (no URL segment to drive a router-view).
+             Skipped entirely when the tab has no body: a decorative tab bar (e.g. detail
+             pages passing embedActiveTab) must not emit an empty flex-growing section. -->
         <section
-            v-else-if="activeTab"
+            v-else-if="activeTab && hasTabBody"
             v-bind="attrsWithoutClass"
             :class="[containerClass, {maximized: (activeTab as Tab).maximized, 'no-overflow': (activeTab as Tab).noOverflow}]"
         >
@@ -67,7 +69,6 @@
     import {ref, computed, useAttrs, onMounted, onBeforeUnmount, watch, nextTick, h, defineComponent, toHandlers, type Component} from "vue"
     import {useRoute, useRouter} from "vue-router"
     import EnterpriseBadge from "./EnterpriseBadge.vue"
-    import BlueprintDetail from "override/components/flows/blueprints/BlueprintDetail.vue"
     import {useRouteTabsStore, type RouteTab} from "../stores/routeTabs"
     import {useActiveTab} from "../composables/useActiveTab"
     import {routeFamily} from "../utils/routeFamily"
@@ -80,7 +81,6 @@
          * for tabs hosting a full-page listing (e.g. KsDataTable with fitHeight).
          */
         fullContainer?: boolean;
-        blueprintDetail?: boolean;
     }
 
     defineOptions({inheritAttrs: false})
@@ -123,8 +123,6 @@
     const activeTabName = useActiveTab()
     const tabsOwnerId = Symbol("route-tabs-owner")
 
-    const selectedBlueprintId = ref<string | undefined>(undefined)
-
     const isEmbedded = computed(() => props.embedActiveTab !== undefined)
 
     const visibleTabs = computed(() => props.tabs.filter(t => !t.hidden))
@@ -137,14 +135,18 @@
     /**
      * A page is router-driven when its active route exposes a `meta.tab`, i.e. tab
      * identity lives in a matched child route and `<router-view>` owns the content.
-     * Embedded mode, the blueprint modal, and not-yet-migrated pages keep the
-     * dynamic `<component :is>` path below.
+     * Embedded mode and not-yet-migrated pages keep the dynamic
+     * `<component :is>` path below.
      */
     const isRouterDriven = computed(() => route?.meta?.tab !== undefined)
 
-    const useRouterView = computed(() =>
-        !props.vertical && !isEmbedded.value && !selectedBlueprintId.value && isRouterDriven.value,
-    )
+    const useRouterView = computed(() => !props.vertical && !isEmbedded.value && isRouterDriven.value)
+
+    /** Whether TabBody would render anything — mirrors the null cases in TabBody's render. */
+    const hasTabBody = computed(() => {
+        const tab = activeTab.value as Tab | undefined
+        return tab !== undefined && (isEditorActiveTab(tab) || Boolean(tab.component))
+    })
 
     const isEditorActiveTab = (tab: Tab): boolean => {
         const TAB = tab.name
@@ -237,10 +239,6 @@
         {deep: true},
     )
 
-    watch(activeTab, () => {
-        selectedBlueprintId.value = undefined
-    })
-
     /**
      * Each tab's route component is code-split (`() => import(...)`), and vue-router
      * doesn't commit a navigation until that chunk resolves — so the first visit to
@@ -281,24 +279,12 @@
         setup() {
             return () => {
                 const tab = activeTab.value as Tab | undefined
-                if (selectedBlueprintId.value) {
-                    return h(BlueprintDetail, {
-                        blueprintId: selectedBlueprintId.value,
-                        blueprintType: "community",
-                        onBack: () => (selectedBlueprintId.value = undefined),
-                        combinedView: true,
-                        kind: tab?.props?.blueprintKind,
-                        embed: tab?.props?.embed ?? true,
-                        system: tab?.props?.system ?? false,
-                    })
-                }
                 if (!tab || !(isEditorActiveTab(tab) || tab.component)) return null
                 return h(tab.component as Component, {
                     ...tab.props,
                     ...attrsWithoutClass.value,
                     ...toHandlers(tab["v-on"] ?? {}),
                     namespace: getNamespaceToForward(tab),
-                    ...(tab.blueprintDetail ? {onGoToDetail: (id: string) => (selectedBlueprintId.value = id)} : {}),
                 })
             }
         },
@@ -337,16 +323,6 @@
         align-items: center;
         gap: 8px;
         font-weight: var(--ks-font-weight-regular);
-    }
-
-    .inline-badge {
-        :deep(.kel-badge__content) {
-            transform: translateY(-1px);
-            position: static;
-            border: none;
-            margin-top: 0;
-            vertical-align: middle;
-        }
     }
 
     .ks-tabs-bar {
